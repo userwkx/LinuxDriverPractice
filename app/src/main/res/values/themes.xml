@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.LedController" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Force light theme to avoid dark-on-dark when simulating -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:navigationBarColor">@color/white</item>
+    </style>
+
+    <style name="Theme.LedController" parent="Base.Theme.LedController" />
+</resources>

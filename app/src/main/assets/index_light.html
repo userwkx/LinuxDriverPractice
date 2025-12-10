@@ -1,0 +1,402 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LED Control Panel</title>
+    <style>
+
+        :root {
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-sub: #6b7280;
+
+
+            --accent-on: #00e676;
+            --accent-blink: #ffcc00;
+            --accent-breath: #00b0ff;
+            --accent-off: #d1d5db;
+        }
+
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+
+            padding: 12px 18px 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+
+        .app-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-main);
+            text-align: left;
+            width: 100%;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            margin-bottom: 50px;
+        }
+
+        .status-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .led-indicator {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+
+            background-color: #e5e7eb;
+
+            border: 6px solid #d1d5db;
+
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            margin-bottom: 16px;
+            cursor: pointer;
+            outline: none;
+            padding: 0;
+        }
+
+        .status-text {
+            font-size: 1.45rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            color: var(--text-sub);
+        }
+
+        .status-detail {
+            font-size: 0.95rem;
+            color: var(--text-sub);
+            margin-bottom: 10px;
+        }
+
+        .raw-state {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            font-family: 'Roboto Mono', monospace;
+            margin-bottom: 22px;
+        }
+
+        .counter-container {
+            background-color: var(--card-bg);
+            padding: 12px 32px;
+            border-radius: 50px;
+
+            border: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.12s ease-out;
+        }
+
+        .counter-label {
+            font-size: 0.78rem;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .counter-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            font-family: 'Roboto Mono', monospace;
+
+            color: var(--text-main);
+        }
+
+        .control-section {
+            width: 100%;
+            max-width: 420px;
+            padding-top: 32px;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .control-btn {
+            background-color: var(--card-bg);
+            border: none;
+            border-radius: 18px;
+            padding: 20px 0;
+
+            color: var(--text-main);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.12s ease-out, background-color 0.2s;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-icon {
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+
+        .btn-on { border-bottom: 3px solid var(--accent-on); }
+        .btn-off { border-bottom: 3px solid var(--accent-off); }
+        .btn-blink { border-bottom: 3px solid var(--accent-blink); }
+        .btn-breath { border-bottom: 3px solid var(--accent-breath); }
+
+        .state-on {
+            background-color: var(--accent-on);
+
+            box-shadow: 0 0 50px var(--accent-on), inset 0 0 16px rgba(255, 255, 255, 0.8);
+            border-color: var(--accent-on);
+        }
+
+        .state-off {
+
+            background-color: #e5e7eb;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.15);
+            border-color: #d1d5db;
+        }
+
+        .state-blink {
+            background-color: var(--accent-blink);
+            animation: blink-anim 0.45s infinite alternate;
+            border-color: var(--accent-blink);
+        }
+
+        .state-breath {
+            background-color: var(--accent-breath);
+            animation: breath-anim 3s infinite ease-in-out;
+            border-color: var(--accent-breath);
+        }
+
+        @keyframes blink-anim {
+            from { opacity: 1; box-shadow: 0 0 40px var(--accent-blink); }
+            to { opacity: 0.4; box-shadow: none; }
+        }
+
+        @keyframes breath-anim {
+            0% { opacity: 0.5; box-shadow: 0 0 10px var(--accent-breath); }
+            50% { opacity: 1; box-shadow: 0 0 60px var(--accent-breath), inset 0 0 20px rgba(255, 255, 255, 0.9); }
+            100% { opacity: 0.5; box-shadow: 0 0 10px var(--accent-breath); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="status-section">
+
+    <button id="visual-led" class="led-indicator state-off" type="button"></button>
+    <div id="text-status" class="status-text">STATUS: OFF</div>
+    <div id="text-detail" class="status-detail">Level -- | on -- ms / off -- ms</div>
+    <div id="raw-state" class="raw-state">LED Node: --</div>
+
+    <div class="counter-container" id="counter-box">
+        <span class="counter-label">Physical Clicks</span>
+        <div id="click-count" class="counter-value">0</div>
+    </div>
+</div>
+
+<div class="control-section">
+    <div class="btn-grid">
+        <button class="control-btn btn-on" onclick="sendCmd('ON')">
+            ON
+        </button>
+        <button class="control-btn btn-off" onclick="sendCmd('OFF')">
+            OFF
+        </button>
+        <button class="control-btn btn-blink" onclick="sendCmd('BLINK')">
+            BLINK
+        </button>
+        <button class="control-btn btn-breath" onclick="sendCmd('BREATH')">
+            BREATH
+        </button>
+    </div>
+</div>
+
+<script>
+
+    const led = document.getElementById('visual-led');
+    const statusText = document.getElementById('text-status');
+    const detailText = document.getElementById('text-detail');
+    const rawStateText = document.getElementById('raw-state');
+    const counterVal = document.getElementById('click-count');
+    const counterBox = document.getElementById('counter-box');
+    let currentMode = 'OFF';
+    let clickCount = 0;
+    let clickTimer = null;
+    let longPressTimer = null;
+    let longPressTriggered = false;
+    let longPressSource = null;
+    const multiClickDelay = 320;
+    const longPressDuration = 3000;
+
+    led.addEventListener('click', handleLedClick);
+    led.addEventListener('contextmenu', event => event.preventDefault());
+
+    const pressStartEvents = ['touchstart', 'mousedown'];
+    const pressEndEvents = ['touchend', 'touchcancel', 'mouseup', 'mouseleave'];
+    if ('PointerEvent' in window) {
+        pressStartEvents.push('pointerdown');
+        pressEndEvents.push('pointerup', 'pointerleave', 'pointercancel');
+    }
+    pressStartEvents.forEach(eventName => {
+        led.addEventListener(eventName, startLongPress);
+    });
+    pressEndEvents.forEach(eventName => {
+        led.addEventListener(eventName, cancelLongPress);
+    });
+
+    function handleLedClick() {
+        if (longPressTriggered) {
+            longPressTriggered = false;
+            return;
+        }
+
+        clickCount += 1;
+        if (clickCount === 3) {
+            clearTimeout(clickTimer);
+            clickCount = 0;
+            sendCmd('BLINK');
+            return;
+        }
+
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => {
+            const nextMode = currentMode === 'ON' ? 'OFF' : 'ON';
+            sendCmd(nextMode);
+            clickCount = 0;
+        }, multiClickDelay);
+    }
+
+    function startLongPress(event) {
+        const source = deriveInputSource(event);
+        if (longPressSource && longPressSource !== source) return;
+        longPressSource = source;
+        longPressTriggered = false;
+        clearTimeout(longPressTimer);
+        longPressTimer = setTimeout(() => {
+            longPressTriggered = true;
+            clickCount = 0;
+            clearTimeout(clickTimer);
+            sendCmd('BREATH');
+        }, longPressDuration);
+    }
+
+    function cancelLongPress() {
+        clearTimeout(longPressTimer);
+        longPressSource = null;
+    }
+
+    function deriveInputSource(event) {
+        if (!event || !event.type) return 'pointer';
+        if (event.type.startsWith('touch')) return 'touch';
+        if (event.type.startsWith('mouse')) return 'mouse';
+        if (event.type.startsWith('pointer')) return 'pointer';
+        return 'pointer';
+    }
+
+    function sendCmd(cmd) {
+        updateUI(cmd);
+        if (window.AndroidBridge && window.AndroidBridge.controlLed) {
+            window.AndroidBridge.controlLed(cmd);
+        }
+    }
+
+    function updateUI(status) {
+        if (!status) return;
+        currentMode = status;
+        led.className = 'led-indicator';
+
+        statusText.style.color = 'var(--text-sub)';
+
+        switch (status) {
+            case 'ON':
+                led.classList.add('state-on');
+                statusText.innerText = 'STATUS: ON';
+                statusText.style.color = 'var(--accent-on)';
+                break;
+            case 'OFF':
+                led.classList.add('state-off');
+                statusText.innerText = 'STATUS: OFF';
+                break;
+            case 'BLINK':
+                led.classList.add('state-blink');
+                statusText.innerText = 'MODE: BLINK';
+                statusText.style.color = 'var(--accent-blink)';
+                break;
+            case 'BREATH':
+                led.classList.add('state-breath');
+                statusText.innerText = 'MODE: BREATH';
+                statusText.style.color = 'var(--accent-breath)';
+                break;
+            default:
+                statusText.innerText = 'STATUS: --';
+        }
+    }
+
+    window.applyState = function (state) {
+        let payload = state;
+        if (typeof state === 'string') {
+            try {
+                payload = JSON.parse(state);
+            } catch (err) {
+                return;
+            }
+        }
+        if (!payload) return;
+        const modeValue = payload.mode || payload.modeRaw || 'OFF';
+        const levelValue = typeof payload.level === 'number' ? payload.level : '--';
+        const onValue = typeof payload.delayOn === 'number' ? payload.delayOn : '--';
+        const offValue = typeof payload.delayOff === 'number' ? payload.delayOff : '--';
+        const rawValue = payload.raw && payload.raw.length ? payload.raw : '--';
+        updateUI(modeValue);
+        detailText.innerText = 'Level ' + levelValue + ' | on ' + onValue + ' ms / off ' + offValue + ' ms';
+        rawStateText.innerText = 'LED Node: ' + rawValue;
+    };
+
+    function updatePhysicalCount(count) {
+        const safeCount = typeof count === 'number' && !isNaN(count) ? count : 0;
+        counterVal.innerText = safeCount;
+        counterBox.style.transform = 'scale(1.08)';
+        setTimeout(() => {
+            counterBox.style.transform = 'scale(1)';
+        }, 120);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.AndroidBridge && window.AndroidBridge.requestStatusSync) {
+            window.AndroidBridge.requestStatusSync();
+        }
+    });
+</script>
+</body>
+</html>
+
