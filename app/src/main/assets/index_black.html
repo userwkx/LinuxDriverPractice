@@ -271,7 +271,12 @@
 
         clearTimeout(clickTimer);
         clickTimer = setTimeout(() => {
-            const nextMode = currentMode === 'ON' ? 'OFF' : 'ON';
+            let nextMode;
+            if (currentMode === 'BLINK' || currentMode === 'BREATH') {
+                nextMode = 'OFF';
+            } else {
+                nextMode = currentMode === 'ON' ? 'OFF' : 'ON';
+            }
             sendCmd(nextMode);
             clickCount = 0;
         }, multiClickDelay);

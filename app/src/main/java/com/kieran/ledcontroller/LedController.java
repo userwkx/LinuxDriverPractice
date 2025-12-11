@@ -16,7 +16,7 @@ public class LedController {
         void onState(LedState state);
     }
 
-    private static final long POLL_INTERVAL_MS = 300L;
+    private static final long POLL_INTERVAL_MS = 100L;
 
     // JNI 桥接对象，真正与 /dev/led_ctrl 交互。
     private final NativeLib nativeLib = new NativeLib();
